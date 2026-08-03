@@ -25,6 +25,10 @@ app.include_router(monitoring_sites.devices_router)
 app.include_router(surveys.router)
 
 
+@app.get("/", tags=["root"])
+def read_root():
+    return {"message": "Wildlife Prediction API is live!"}
+
 @app.get("/health", tags=["health"])
 def health_check():
     return {"status": "ok", "service": settings.app_name}
