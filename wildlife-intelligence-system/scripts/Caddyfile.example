@@ -1,0 +1,11 @@
+# Example reverse proxy / TLS termination in front of the frontend
+# container. Caddy auto-provisions Let's Encrypt certs for the domain.
+#
+# Run alongside the stack, e.g.:
+#   docker run -d --network wildlife-intelligence-system_wpi_internal \
+#     -p 80:80 -p 443:443 -v $PWD/Caddyfile:/etc/caddy/Caddyfile \
+#     caddy:2-alpine
+
+your-domain.example {
+    reverse_proxy frontend:80
+}

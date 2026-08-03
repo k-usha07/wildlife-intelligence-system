@@ -1,0 +1,85 @@
+version: "3.9"
+
+# Production stack: pre-built, immutable images; no source bind-mounts;
+# only the frontend is published to the host. Point a reverse proxy /
+# load balancer at ports 80/443 here for TLS.
+#
+# Usage:
+#   IMAGE_TAG=<git-sha> REGISTRY=ghcr.io/your-org docker compose -f docker-compose.prod.yml up -d
+
+services:
+  db:
+    image: postgis/postgis:15-3.4
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env.prod
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-wildlife}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-wildlife_db}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - wpi_internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-wildlife} -d ${POSTGRES_DB:-wildlife_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+
+  backend:
+    image: ghcr.io/your-org/wpi-backend:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env.prod
+    environment:
+      WEB_CONCURRENCY: ${BACKEND_WORKERS:-4}
+    volumes:
+      - media_data:/app/storage/media
+      - dataset_data:/app/storage/datasets
+    networks:
+      - wpi_internal
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+
+  frontend:
+    image: ghcr.io/your-org/wpi-frontend:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    networks:
+      - wpi_internal
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  wpi_internal:
+    driver: bridge
+
+volumes:
+  db_data:
+  media_data:
+  dataset_data:
