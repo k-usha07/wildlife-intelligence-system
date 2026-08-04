@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 60
     refresh_token_expire_days: int = 7
 
-    database_url: str = "postgresql+psycopg2://wildlife:wildlife@localhost:5432/wildlife_db"
+    database_url: str = "postgresql://wildlife_database_user:G9KvbZGfrexZROT9gIQ4VtHG0iMCyNs2@dpg-d9os19ugekts73en9rm0-a/wildlife_database"
 
     frontend_origin: str = "http://localhost:5173"
 
