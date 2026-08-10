@@ -14,6 +14,12 @@ class Settings(BaseSettings):
 
     frontend_origin: str = "http://localhost:5173"
 
+@property
+def frontend_origins(self) -> list[str]:
+    """Supports a single origin or a comma-separated list, e.g.
+    FRONTEND_ORIGIN=http://localhost:5173,https://your-frontend.example
+    Trims whitespace and drops empty entries."""
+    return [o.strip() for o in self.frontend_origin.split(",") if o.strip()]
     media_storage_path: str = "./storage/media"
     datasets_dir: str = "./storage/datasets"
 
