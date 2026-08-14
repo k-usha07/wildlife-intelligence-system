@@ -69,3 +69,9 @@ celery==5.3.6
 # === Misc ===
 aiofiles==23.2.1
 email-validator==2.1.0
+Pillow==10.1.0
+reportlab==4.0.7
+openpyxl==3.1.2
+redis==5.0.1
+aiofiles==23.2.1
+email-validator==2.1.0
