@@ -1,0 +1,69 @@
+# ============================================================================
+# Render Blueprint — https://render.com/docs/blueprint-spec
+#
+# ⚠️  Place this file in the ROOT of your repository:
+#     wildlife-intelligence-system/render.yaml
+#
+# Render auto-detects it when you connect your repo.
+# ============================================================================
+
+services:
+  # ── Backend Web Service ────────────────────────────────────────────────
+  - type: web
+    name: wildlife-prediction
+    runtime: python
+    region: oregon          # or your preferred region
+    plan: starter           # or pro / pro-plus
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+    startCommand: bash scripts/start.sh
+    envVars:
+      - key: APP_NAME
+        value: Wildlife Population Intelligence System
+      - key: ENV
+        value: production
+      - key: PYTHON_VERSION
+        value: "3.11.7"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "60"
+      - key: REFRESH_TOKEN_EXPIRE_DAYS
+        value: "7"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: wildlife-db
+          property: connectionString
+      - key: REDIS_HOST
+        fromService:
+          name: wildlife-redis
+1         type: pserv
+          property: host
+      - key: REDIS_PORT
+        value: "6379"
+      - key: FRONTEND_ORIGIN
+        value: https://wildlife-intelligence-system.vercel.app
+      - key: ENABLE_ML_MODELS
+        value: "true"
+      - key: YOLO_MODEL_PATH
+        value: /app/models/yolov8_wildlife.pt
+      - key: WEB_CONCURRENCY
+        value: "4"
+
+  # ── Redis ──────────────────────────────────────────────────────────────
+  - type: pserv
+    name: wildlife-redis
+    plan: starter
+    maxmemory: 50
+    ipAllowList: []   # internal only
+
+  # ── PostgreSQL + PostGIS ──────────────────────────────────────────────
+databases:
+  - name: wildlife-db
+    plan: starter
+    postgresMajorVersion: "15"
+    extensions:
+      - postgis

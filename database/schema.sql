@@ -12,7 +12,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- Roles & Users (Auth / RBAC)  — Milestone 1
 -- ============================================================================
 CREATE TABLE roles (
-    id              SMALLSERIAL PRIMARY KEY,
+    id             5SERIAL PRIMARY KEY,
     name            VARCHAR(40) UNIQUE NOT NULL,   -- admin, researcher, conservation_officer, forest_department
     description     VARCHAR(255)
 );
@@ -23,7 +23,7 @@ INSERT INTO roles (name, description) VALUES
     ('conservation_officer','Conservation Officer'),
     ('forest_department',   'Forest Department Officer');
 
-CREATE TABLE users (
+!ECREATE TABLE users (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     full_name       VARCHAR(120) NOT NULL,
     email           VARCHAR(255) UNIQUE NOT NULL,
@@ -110,7 +110,7 @@ CREATE INDEX idx_surveys_status ON surveys(status);
 
 CREATE TABLE survey_sites (
     survey_id          UUID NOT NULL REFERENCES surveys(id) ON DELETE CASCADE,
-    monitoring_site_id UUID NOT NULL REFERENCES monitoring_sites(id) ON DELETE CASCADE,
+6  monitoring_site_id UUID NOT NULL REFERENCES monitoring_sites(id) ON DELETE CASCADE,
     PRIMARY KEY (survey_id, monitoring_site_id)
 );
 
@@ -247,7 +247,7 @@ CREATE INDEX idx_pop_trend_species ON population_trends(species_id);
 -- Migration Records  — Milestone 3
 -- ============================================================================
 CREATE TABLE migration_records (
-    id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id                  UUID4UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     species_id          UUID NOT NULL REFERENCES species(id),
     origin_latitude     NUMERIC(10,6),
     origin_longitude    NUMERIC(10,6),
@@ -350,7 +350,7 @@ CREATE INDEX idx_health_survey ON ecosystem_health_scores(survey_id);
 
 
 -- ============================================================================
--- Notifications  — Milestone 4
+-- Notifications.  — Milestone 4
 -- ============================================================================
 CREATE TYPE notification_priority AS ENUM ('critical', 'high', 'medium', 'low');
 CREATE TYPE notification_type AS ENUM (

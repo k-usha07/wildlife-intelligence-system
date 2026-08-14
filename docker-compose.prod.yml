@@ -5,7 +5,7 @@ version: "3.9"
 # load balancer at ports 80/443 here for TLS.
 #
 # Usage:
-#   IMAGE_TAG=<git-sha> REGISTRY=ghcr.io/your-org docker compose -f docker-compose.prod.yml up -d
+# IMAGE_TAG=<git-sha> REGISTRY=ghcr.io/your-org docker compose -f docker-compose.prod.yml up -d
 
 services:
   db:
@@ -31,6 +31,26 @@ services:
         limits:
           memory: 1g
 
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env.prod
+    command: redis-server --requirepass ${REDIS_PASSWORD:-changeme}
+    volumes:
+      - redis_data:/data
+    networks:
+      - wpi_internal
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-changeme}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+
   backend:
     image: ghcr.io/your-org/wpi-backend:${IMAGE_TAG:-latest}
     restart: unless-stopped
@@ -38,13 +58,20 @@ services:
       - ./backend/.env.prod
     environment:
       WEB_CONCURRENCY: ${BACKEND_WORKERS:-4}
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-wildlife}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-wildlife_db}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-changeme}
     volumes:
       - media_data:/app/storage/media
       - dataset_data:/app/storage/datasets
+      - model_data:/app/models
     networks:
       - wpi_internal
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -55,7 +82,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1g
+          memory: 2g
       restart_policy:
         condition: on-failure
         max_attempts: 3
@@ -63,6 +90,8 @@ services:
   frontend:
     image: ghcr.io/your-org/wpi-frontend:${IMAGE_TAG:-latest}
     restart: unless-stopped
+    environment:
+      VITE_API_BASE_URL: ${BACKEND_URL:-http://backend:8000}
     ports:
       - "80:80"
     networks:
@@ -74,6 +103,10 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512m
 
 networks:
   wpi_internal:
@@ -81,5 +114,7 @@ networks:
 
 volumes:
   db_data:
+  redis_data:
   media_data:
   dataset_data:
+  model_data:
