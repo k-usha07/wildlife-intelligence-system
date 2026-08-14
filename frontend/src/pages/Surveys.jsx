@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { createSurvey, fetchSites, fetchSurveys } from '../api/client.js'
+import { Link } from 'react-router-dom'
 
 export default function Surveys() {
   const [surveys, setSurveys] = useState([])
@@ -113,7 +114,7 @@ export default function Surveys() {
             )}
             {surveys.map((s) => (
               <tr key={s.id}>
-                <td>{s.name}</td>
+                <td><Link to={`/surveys/${s.id}`}>{s.name}</Link></td>
                 <td>{s.site_count}</td>
                 <td><span className="badge">{s.status}</span></td>
                 <td>{s.start_date}</td>

@@ -84,3 +84,28 @@ export async function fetchUsers() {
   const res = await api.get('/users')
   return res.data
 }
+
+export async function fetchSurvey(surveyId) {
+  const res = await api.get(`/surveys/${surveyId}`)
+  return res.data
+}
+
+export async function fetchObservations(surveyId) {
+  const res = await api.get(`/surveys/${surveyId}/observations`)
+  return res.data
+}
+
+export async function fetchBiodiversitySummary(surveyId) {
+  const res = await api.get(`/analytics/${surveyId}/biodiversity-summary`)
+  return res.data
+}
+
+export async function fetchEcosystemHealth(surveyId) {
+  const res = await api.get(`/analytics/${surveyId}/ecosystem-health`)
+  return res.data
+}
+
+export async function fetchAlerts(surveyId) {
+  const res = await api.get(`/analytics/${surveyId}/alerts`)
+  return res.data
+}
